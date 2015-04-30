@@ -1,79 +1,114 @@
-This is a special R script which can be used to generate a report. You can
-write normal text in roxygen comments.
-
-First we set up some options (you do not have to do this):
-
-
-
-The report begins here.
+Rolling example
 
 
 ```r
-# boring examples as usual
-set.seed(123)
-x = rnorm(5)
-mean(x)
+    ## Not run:
+        # Data
+library(DPpackage)
 ```
 
 ```
-## [1] 0.1935703
-```
-
-You can use the special syntax {{code}} to embed inline expressions, e.g.
-2.1935703
-is the mean of x plus 2.
-The code itself may contain braces, but these are not checked.  Thus,
-perfectly valid (though very strange) R code such as `{{2 + 3}} - {{4 - 5}}`
-can lead to errors because `2 + 3}} - {{4 - 5` will be treated as inline code.
-
-Now we continue writing the report. We can draw plots as well.
-
-
-```r
-par(mar = c(4, 4, .1, .1)); plot(x)
-```
-
-![plot of chunk test-b](figure/silk-test-b-1.png) 
-
-Actually you do not have to write chunk options, in which case knitr will use
-default options. For example, the code below has no options attached:
-
-
-```r
-var(x)
-```
-
-```
-## [1] 0.6577564
+## Loading required package: MASS
+## Loading required package: nlme
+## Loading required package: survival
+## Loading required package: splines
+##  
+## DPpackage 1.1-6
+##  
+## Copyright (C) 2006 - 2012, Alejandro Jara
+## Department of Statistics
+## P.U. Catolica de Chile
+##  
+## Support provided by Fondecyt
+## 11100144 grant.
+## 
 ```
 
 ```r
-quantile(x)
+data(rolling)
+y <- cbind(rolling$y1,rolling$y2)
+                                        # Prior information
+prior<-list(alpha=1,
+            a1=1,
+            b1=1)
+                                        # Initial state
+state <- NULL
+                                        # MCMC parameters
+mcmc <- list(nburn=5000,
+             nsave=10000,
+             nskip=3,
+             ndisplay=20000)
+                                        # Fitting the model
+fit <- DPbetabinom(y=y,ngrid=100,
+                   prior=prior,
+                   mcmc=mcmc,
+                   state=state,
+                   status=TRUE)
 ```
-
-```
-##          0%         25%         50%         75%        100% 
-## -0.56047565 -0.23017749  0.07050839  0.12928774  1.55870831
-```
-
-And you can also write two chunks successively like this:
-
 
 ```r
-sum(x^2) # chi-square distribution with df 5
+fit
 ```
 
 ```
-## [1] 2.818373
+## 
+## Bayesian Semiparametric Beta-Binomial Model
+## 
+## Call:
+## DPbetabinom.default(y = y, ngrid = 100, prior = prior, mcmc = mcmc, 
+##     state = state, status = TRUE)
+## 
+## Posterior Predictive Distributions (log):
+##    Min.  1st Qu.   Median     Mean  3rd Qu.     Max.  
+##  -8.074   -8.074   -8.074   -8.006   -8.074   -1.862  
+## 
+## Posterior Inference of Parameters:
+## ncluster     alpha  
+##    6.239     1.000  
+## 
+## Number of Observations: 320
 ```
 
 ```r
-sum((x - mean(x))^2) # df is 4 now
+summary(fit)
 ```
 
 ```
-## [1] 2.631026
+## 
+## Bayesian Semiparametric Beta-Binomial Model
+## 
+## Call:
+## DPbetabinom.default(y = y, ngrid = 100, prior = prior, mcmc = mcmc, 
+##     state = state, status = TRUE)
+## 
+## Posterior Predictive Distributions (log):
+##    Min.  1st Qu.   Median     Mean  3rd Qu.     Max.  
+##  -8.074   -8.074   -8.074   -8.006   -8.074   -1.862  
+## 
+## Precision parameter:
+##           Mean     Median   Std. Dev.  Naive Std.Error  95%HPD-Low
+## ncluster   6.2389   6.0000   1.9397     0.0194           3.0000   
+##           95%HPD-Upp
+## ncluster  10.0000   
+## 
+## Number of Observations: 320
 ```
 
-Done. Call spin('knitr-spin.R') to make silk from sow's ear now and knit a
-lovely purse.
+```r
+                                        # density estimate
+plot(fit,output="density")
+```
+
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png) 
+
+```r
+                                        # parameters
+plot(fit,output="param")
+```
+
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-2.png) ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-3.png) ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-4.png) 
+
+```r
+## End(Not run)
+```
+
